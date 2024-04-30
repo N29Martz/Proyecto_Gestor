@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34511.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gestor_archivos_backend", "gestor_archivos_backend\gestor_archivos_backend.csproj", "{0A68E5EB-7289-4D26-8269-024BF82F8E58}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A68E5EB-7289-4D26-8269-024BF82F8E58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A68E5EB-7289-4D26-8269-024BF82F8E58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A68E5EB-7289-4D26-8269-024BF82F8E58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A68E5EB-7289-4D26-8269-024BF82F8E58}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5412616B-4FC2-4032-9E84-3BEAC934C8FC}
+	EndGlobalSection
+EndGlobal
