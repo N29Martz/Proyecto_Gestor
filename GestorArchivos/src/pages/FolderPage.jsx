@@ -8,11 +8,11 @@ import { AuthContext } from '../context/index';
 import { useParams } from 'react-router-dom';
 import { FileItem } from '../components/FileItem';
 
+
 export const FolderPage = () => {
 
 	// obtener el id de la prop
 	const { id } = useParams();
-	
 
   const [ files, setFiles ] = useState([]);
   const { refreshToken } = useContext(AuthContext);
@@ -20,9 +20,14 @@ export const FolderPage = () => {
 
   const allFiles = async () => {
 
-    const { data } = await getFiles(id);
+    let { data } = await getFiles(id);
 
 		if (!data) return setNoFiles(true);
+
+    data = data.map((file) => !file.deleted && file ).filter((file) => file);
+
+    if (!data.length)
+      return setNoFiles(true);
 
     setFiles(data);
 		setNoFiles(false);
@@ -43,6 +48,20 @@ export const FolderPage = () => {
 
   };
 
+  const onEditFile = (file) => {
+
+    const newFiles = files.map((f) => f.id === file.id ? file : f);
+    setFiles(newFiles);
+
+  };
+
+  const onDeleteFile = (file) => {
+      
+    const newFiles = files.map((f) => f.id === file.id ? { ...f, deleted: true } : f);
+    setFiles(newFiles);
+  
+  }
+  
   return (
     <>
       <div>
@@ -62,7 +81,7 @@ export const FolderPage = () => {
         { 
           files &&
           files.map((file) => (
-            <FileItem key={ file.id } { ...file } />
+            !file.deleted && <FileItem key={ file.id } { ...file } onEditFile={ onEditFile } onDeleteFile={ onDeleteFile } />
           ))
         }
 

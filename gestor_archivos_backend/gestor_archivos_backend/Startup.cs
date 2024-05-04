@@ -28,7 +28,11 @@ namespace gestor_archivos_backend
             //esto es la conexion a la base de datos
             services.AddDbContext<GestorDbContext>(options =>
                 //es variable lo que hace es acceder a la configuracion de la base de datos appsettings.json
-                options.UseOracle(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseOracle(Environment.GetEnvironmentVariable("DEFAULT_CONNECTION")));
+
+            // add log db context
+            services.AddDbContext<LogDbContext>(options =>
+                options.UseOracle(Environment.GetEnvironmentVariable("LOG_CONNECTION")));
 
             services.AddSwaggerGen(opt =>
                 {
@@ -65,11 +69,11 @@ namespace gestor_archivos_backend
             services.AddTransient<IUsuariosService, UsuariosService>();
             services.AddTransient<IRolesService, RolesService>();
 
+            //log service
+            services.AddTransient<ILogsService, LogsService>();
+
             //Auth service
             services.AddTransient<IAuthService, AuthService>();
-
-            //google service
-            
 
             //add automapper service
             services.AddAutoMapper(typeof(Startup));

@@ -25,11 +25,15 @@ namespace gestor_archivos_backend.Services
         
         private readonly string _USER_ID;
 
+        // logs
+        private readonly ILogsService _logsService;
+
         public AuthService(
             SignInManager<UsuarioEntity> signInManager,
             UserManager<UsuarioEntity> userManager,
             IHttpContextAccessor httpContextAccessor,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogsService logsService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -37,6 +41,9 @@ namespace gestor_archivos_backend.Services
             _httpContext = httpContextAccessor.HttpContext;
             var idClaim = _httpContext.User.Claims.Where(x => x.Type == "userId").FirstOrDefault();
             _USER_ID = idClaim?.Value;
+
+            _logsService = logsService;
+
         }
         
         public async Task<ResponseDto<LoginResponseDto>> LoginAsync(LoginDto dto)
@@ -70,6 +77,8 @@ namespace gestor_archivos_backend.Services
                 }
 
                 var jwtToken = GetToken(authClaims);
+
+                await _logsService.CreateLog(userEntity.Id, LogTypes.LoginUser);
 
                 return new ResponseDto<LoginResponseDto>
                 {

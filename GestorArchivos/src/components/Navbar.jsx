@@ -4,6 +4,7 @@ import JSZip from 'jszip'
 import { constants } from "../helpers/constants";
 import PropTypes from 'prop-types';
 import ModalFileSelect from "./ModalFileSelect";
+import { useParams } from "react-router-dom";
 
 export const Navbar = ({ onNewFolder, onNewFile }) => {
 
@@ -12,10 +13,11 @@ export const Navbar = ({ onNewFolder, onNewFile }) => {
     const [showModal, setShowModal] = useState(false);
     const [showModalFile, setShowModalFile] = useState(false);
     const [file, setFile] = useState(null);
+    const { id } = useParams();
 
     // const [folders, setFolders] = useState([]);
 
-    const [ user, setUser ] = useState(JSON.parse(localStorage.getItem('user')) || null);
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
 
     const { API_URL } = constants();
 
@@ -28,34 +30,35 @@ export const Navbar = ({ onNewFolder, onNewFile }) => {
         // console.log(`Crear carpeta con nombre: ${name}`)
 
         try {
-            
+
             const data = {
-                nombre: name
+                nombre: name,
+                carpetaPadreId: id ? id : null
             };
-    
-            const response = await fetch(`${ API_URL }/folders`, {
+
+            const response = await fetch(`${API_URL}/folders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${ user.token }`
+                    'Authorization': `Bearer ${user.token}`
                 },
                 body: JSON.stringify(data)
             }).then(res => res.json()).catch(err => console.error(err));
-    
+
             // if (!response.ok)
             //    throw new Error(response);
-    
+
             // const res = await response.json();
-            
+
             if (!response.status)
                 throw new Error(response.message);
 
             onNewFolder(response.data);
-           
+
         } catch (error) {
-            
+
             alert(error);
-    
+
         }
 
     }
@@ -66,14 +69,14 @@ export const Navbar = ({ onNewFolder, onNewFile }) => {
     }
 
     const handleFileUp = () => {
-        
+
         if (!file)
-          return console.log("No se ha seleccionado ningún archivo.");
+            return console.log("No se ha seleccionado ningún archivo.");
 
         console.log("Archivo seleccionado:", file.name);
-        
+
         setShowModalFile(true);
-        
+
     };
 
     const handleFolderSelect = (event) => {
@@ -140,7 +143,7 @@ export const Navbar = ({ onNewFolder, onNewFile }) => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                                                 </svg>
                                                 <span>Subir carpeta</span>
-                                                <input type="file" id="folderInput" onChange={handleFileChange} className="hidden"/>
+                                                <input type="file" id="folderInput" onChange={handleFileChange} className="hidden" />
                                             </button>
                                         </div>
                                     </div>
@@ -162,6 +165,20 @@ export const Navbar = ({ onNewFolder, onNewFile }) => {
                                     <line x1="14" y1="11" x2="14" y2="17"></line>
                                 </svg>
                                 <span>Papelera</span>
+                            </a>
+                            <a href="/record" className="px-4 py-2 text-sm text-white hover:bg-[#d93682] hover:text-white flex items-center space-x-2" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" className="w-5 h-5">
+                                    <g id="SVGRepo_bgCarrier" strokeWidth="0" />
+                                    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                                    <g id="SVGRepo_iconCarrier"> 
+                                        <path d="M2 12C2 17.5228 6.47715 22 12 22C13.8214 22 15.5291 21.513 17 20.6622M12 2C17.5228 2 22 6.47715 22 12C22 13.8214 21.513 15.5291 20.6622 17" 
+                                            stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" /> 
+                                        <path d="M12 9V13H16" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> 
+                                        <path d="M17 20.6622C15.5291 21.513 13.8214 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 13.8214 21.513 15.5291 20.6622 17" 
+                                            stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="0.5 3.5" /> 
+                                    </g>
+                                </svg>
+                                <span>Historial</span>
                             </a>
                             <a href="/profile" className="px-4 py-2 text-sm text-white hover:bg-[#d93682] hover:text-white flex items-center space-x-2" role="menuitem">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -205,9 +222,9 @@ export const Navbar = ({ onNewFolder, onNewFile }) => {
             {/*</div>*/}
             {/* llamar el modal de ModalFileSelect.jsx */}
             {showModalFile && (
-               <ModalFileSelect selectedFile={file} openModal={showModalFile} onNewFile={ onNewFile }/>
+                <ModalFileSelect selectedFile={file} openModal={showModalFile} onNewFile={onNewFile} />
             )}
-            
+
         </nav>
     )
 }

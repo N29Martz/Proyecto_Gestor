@@ -8,7 +8,7 @@ namespace gestor_archivos_backend.DataBase
     //esto es para la conexion a la base de datos
     public class GestorDbContext : IdentityDbContext<UsuarioEntity, RolEntity, string>
     {
-        public GestorDbContext(DbContextOptions options) : base(options)
+        public GestorDbContext(DbContextOptions<GestorDbContext> options) : base(options)
         {
 
         }

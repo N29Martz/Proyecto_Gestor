@@ -2,9 +2,11 @@
 using gestor_archivos_backend.Dtos.Archivos;
 using gestor_archivos_backend.Dtos.Files;
 using gestor_archivos_backend.Dtos.Folders;
+using gestor_archivos_backend.Dtos.Logs;
 using gestor_archivos_backend.Dtos.Rol;
 using gestor_archivos_backend.Dtos.Users;
 using gestor_archivos_backend.Entities;
+using gestor_archivos_backend.Entities.Logs;
 
 namespace gestor_archivos_backend.Helpers
 {
@@ -16,6 +18,7 @@ namespace gestor_archivos_backend.Helpers
             MapForFolders();
             MapForUsers();
             MapForRoles();
+            MapForLogs();
         }
 
         private void MapForArchivos()
@@ -47,6 +50,11 @@ namespace gestor_archivos_backend.Helpers
             CreateMap<RolEntity, RolDto>();
             CreateMap<CreateRolDto, RolEntity>();
             CreateMap<EditRolDto, RolEntity>();
+        }
+
+        private void MapForLogs()
+        {
+            CreateMap<LogEntity, LogDto>();
         }
 
     }

@@ -58,7 +58,7 @@ export const FilePage = () => {
         { 
           folders &&
           folders.map((folder) => (
-            <FolderItem key={ folder.id } { ...folder } />
+            !folder.carpetaPadreId && <FolderItem key={ folder.id } { ...folder } />
           ))
         }
 

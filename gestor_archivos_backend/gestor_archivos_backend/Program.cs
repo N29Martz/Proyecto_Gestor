@@ -5,6 +5,8 @@ using gestor_archivos_backend.DataBase;
 using gestor_archivos_backend.Entities;
 using Microsoft.AspNetCore.Identity;
 
+DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+
 var builder = WebApplication.CreateBuilder(args);
 
 //hay que extraer del metodo constructor
@@ -35,7 +37,5 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "ocurrio un error");
     }
 }
-
-DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
 
 app.Run();

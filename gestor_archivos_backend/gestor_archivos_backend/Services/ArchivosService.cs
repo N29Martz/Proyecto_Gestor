@@ -28,6 +28,8 @@ namespace gestor_archivos_backend.Services
         private readonly HttpContext _httpContext;
         private readonly string _USER_ID;
 
+        private readonly ILogsService _logsService;
+
         private readonly Dictionary<string, List<string>> _typeFiles = new () {
             { "Imagen", new List<string> { "jpg", "jpeg", "png", "gif", "bmp" } },
             { "Video", new List<string> { "mp4", "avi", "mov", "mkv", "flv" } },
@@ -36,7 +38,7 @@ namespace gestor_archivos_backend.Services
             { "Otro", new List<string> { "zip", "rar", "7z", "tar" } }
         };
 
-        public ArchivosService(GestorDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+        public ArchivosService(GestorDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, ILogsService logsService)
         {
             _context = context;
             _mapper = mapper;
@@ -48,6 +50,8 @@ namespace gestor_archivos_backend.Services
 
             _cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
             _cloudinary.Api.Secure = true;
+            
+            _logsService = logsService;
 
         }
 
@@ -72,6 +76,8 @@ namespace gestor_archivos_backend.Services
                     };
 
                 var archivosDto = _mapper.Map<List<ArchivoDto>>(archivosEntity);
+
+                await _logsService.CreateLog(_USER_ID, LogTypes.ReadFiles);
 
                 return new ResponseDto<List<ArchivoDto>>
                 {
@@ -113,9 +119,9 @@ namespace gestor_archivos_backend.Services
                         Data = null
                     };
 
-                Console.WriteLine("This! " + archivosEntity);
-
                 var archivosDto = _mapper.Map<List<ArchivoDto>>(archivosEntity);
+
+                await _logsService.CreateLog(_USER_ID, LogTypes.ReadFiles);
 
                 return new ResponseDto<List<ArchivoDto>>
                 {
@@ -155,7 +161,17 @@ namespace gestor_archivos_backend.Services
                     };
                 }
 
+                if (await _context.ArchivosUsuarios.FirstOrDefaultAsync(a => a.ArchivoId == id && a.UsuarioId == _USER_ID) is null)
+                    return new ResponseDto<ArchivoDto>
+                    {
+                        Status = false,
+                        StatusCode = 403,
+                        Message = "No tienes permisos para ver este archivo"
+                    };
+
                 var archivoDto = _mapper.Map<ArchivoDto>(archivoEntity);
+
+                await _logsService.CreateLog(_USER_ID, LogTypes.ReadFiles, archivoEntity.Id);
 
                 return new ResponseDto<ArchivoDto>
                 {
@@ -235,10 +251,6 @@ namespace gestor_archivos_backend.Services
                 archivoEntity.Nombre = model.Nombre;
                 archivoEntity.FechaCreacion = DateTime.Now;
 
-                // Aquí debes obtener el usuario actualmente autenticado o el usuario al que deseas asociar el archivo
-                // Puedes obtener el ID del usuario a partir del token o de alguna otra fuente
-                ///string userId = ObtenerUserId(); // Implementa este método según cómo obtengas el ID del usuario
-
                 var permissionId = (await _context.Permiso.FirstOrDefaultAsync(p => p.Descripcion == "Administrador")).Id;
 
                 // Crear una nueva entidad ArchivosUsuariosEntity para asociar el archivo al usuario
@@ -249,14 +261,12 @@ namespace gestor_archivos_backend.Services
                     PermisoId = permissionId
                 };
 
-                // Agregar la entidad ArchivosUsuariosEntity a la tabla ArchivosUsuarios
-                // await _context.ArchivosUsuarios.AddAsync(archivosUsuariosEntity);
-                // await _context.SaveChangesAsync();
-
                 await _context.ArchivosUsuarios.AddAsync(archivosUsuariosEntity);
                 await _context.SaveChangesAsync();
 
                 var archivoDto = _mapper.Map<ArchivoDto>(archivosUsuariosEntity.Archivo);
+
+                await _logsService.CreateLog(_USER_ID, LogTypes.CreateFile, archivoEntity.Id);
 
                 return new ResponseDto<ArchivoDto>
                 {
@@ -265,6 +275,7 @@ namespace gestor_archivos_backend.Services
                     Message = "Archivo subido correctamente.",
                     Data = archivoDto
                 };
+
             }
             catch (Exception e)
             {
@@ -306,36 +317,23 @@ namespace gestor_archivos_backend.Services
 
                 var fileEdit = _mapper.Map<EditarArchivoDto, ArchivoEntity>(dto, archivoEntity);
 
-                // _context.Archivos.Update(archivoEntity);
-
-                // await _context.SaveChangesAsync();
-
-                // /0a9566b5-9cd7-443e-9eeb-7ecc9e02acad/256edbe8-6a72-4a43-a574-20a2ca31f391/Imagen/Testing.jpg
-                // actualizar el archivo en cloudinary
-                var fromPublicId = $"{ _USER_ID }{ archivoEntity.UrlArchivo.Split($"/{ _USER_ID }").Last().Split(".").First() }";
+                // actualizar el archivo en cloudinary""
+                var fromPublicId = $"{ _USER_ID }{ archivoEntity.UrlArchivo.Split($"/{ _USER_ID }").Last().Split(".").First().Replace("%20", " ") }";
 
                 // throw new Exception(publicId);
 
                 var toPublicId = $"{ _USER_ID }/{ archivoEntity.CarpetaId }/{ fileType.Descripcion }/{ dto.Nombre }";
 
-                // var deleteParams = new DeletionParams(publicId);
-
-                // var uploadParams = new ImageUploadParams()
-                // {
-                //     File = new FileDescription(fileEdit.Nombre, fileEdit.UrlArchivo),
-                //     PublicId = $"{_USER_ID}/{dto.CarpetaId}/{dto.TipoArchivoId}/{dto.Nombre}",
-                // };
-
                 var renameParams = new RenameParams(fromPublicId, toPublicId) { Overwrite = true };
 
                 var renameResult = _cloudinary.Rename(renameParams) ?? throw new Exception("No se pudo renombrar el archivo en cloudinary.");
-
-                // var uploadResult = _cloudinary.Upload(uploadParams) ?? throw new Exception("No se pudo subir el archivo a cloudinary.");
 
                 fileEdit.UrlArchivo = renameResult.Url.ToString();
 
                 _context.Archivos.Update(fileEdit);
                 await _context.SaveChangesAsync();
+                
+                await _logsService.CreateLog(_USER_ID, LogTypes.ModifyFile, archivoEntity.Id);
 
                 var archivoDto = _mapper.Map<ArchivoDto>(fileEdit);
 
@@ -377,19 +375,12 @@ namespace gestor_archivos_backend.Services
                     };
                 }
 
-                // remover de cloudinary
-                // var publicId = archivoEntity.UrlArchivo.Split("/").Last().Split(".").First();
-                // var deleteParams = new DeletionParams(publicId);
-
-                // _context.Archivos.Remove(archivoEntity);
-                // await _context.SaveChangesAsync();
-
-                // colocar el delete en true
-
                 archivoEntity.Deleted = true;
 
                 _context.Archivos.Update(archivoEntity);
                 await _context.SaveChangesAsync();
+
+                await _logsService.CreateLog(_USER_ID, LogTypes.DeleteFile, archivoEntity.Id);
 
                 return new ResponseDto<ArchivoDto>
                 {

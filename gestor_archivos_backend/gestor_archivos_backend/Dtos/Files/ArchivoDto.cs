@@ -32,5 +32,8 @@ namespace gestor_archivos_backend.Dtos.Files
         public Guid CarpetaId { get; set; }
 
         // public CarpetaEntity Carpeta { get; set; }
+
+        public bool Deleted { get; set; }
+
     }
 }

@@ -21,7 +21,9 @@ public class FoldersService : IFoldersService
 
     private readonly string _USER_ID;
 
-    public FoldersService(GestorDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+    private readonly ILogsService _logsService;
+
+    public FoldersService(GestorDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, ILogsService logsService)
     {
 
         _context = context;
@@ -30,6 +32,8 @@ public class FoldersService : IFoldersService
 
         var idClaim = _httpContext.User.Claims.Where(x => x.Type == "userId").FirstOrDefault();
         _USER_ID = idClaim?.Value;
+
+        _logsService = logsService;
 
     }
 
@@ -74,6 +78,8 @@ public class FoldersService : IFoldersService
             await _context.Carpeta.AddAsync(folderEntity);
             await _context.SaveChangesAsync();
 
+            await _logsService.CreateLog(_USER_ID, LogTypes.CreateFolder);
+
             return new ResponseDto<FolderDto>
             {
                 Status = true,
@@ -112,6 +118,8 @@ public class FoldersService : IFoldersService
                     StatusCode = 404,
                     Message = "La carpeta no existe",
                 };
+
+            await _logsService.CreateLog(_USER_ID, LogTypes.ReadFolder);
 
             return new ResponseDto<FolderDto>
             {
@@ -152,6 +160,8 @@ public class FoldersService : IFoldersService
                     Message = "No se encontraron carpetas",
                 };
 
+            await _logsService.CreateLog(_USER_ID, LogTypes.ReadFolder);
+
             return new ResponseDto<List<FolderDto>>
             {
                 Status = true,
@@ -190,6 +200,8 @@ public class FoldersService : IFoldersService
                     StatusCode = 404,
                     Message = "No se encontraron carpetas",
                 };
+
+            await _logsService.CreateLog(_USER_ID, LogTypes.ReadFolder);
 
             return new ResponseDto<List<FolderDto>>
             {
@@ -235,6 +247,8 @@ public class FoldersService : IFoldersService
             _context.Carpeta.Update(folderEntity);
             await _context.SaveChangesAsync();
 
+            await _logsService.CreateLog(_USER_ID, LogTypes.ModifyFolder);
+
             return new ResponseDto<List<FolderDto>>
             {
                 Status = true,
@@ -276,6 +290,8 @@ public class FoldersService : IFoldersService
 
             _context.Carpeta.Remove(folderEntity);
             await _context.SaveChangesAsync();
+
+            await _logsService.CreateLog(_USER_ID, LogTypes.DeleteFolder);
 
             return new ResponseDto<List<FolderDto>>
             {
@@ -394,6 +410,8 @@ public class FoldersService : IFoldersService
                     StatusCode = 404,
                     Message = "No se encontraron archivos",
                 };
+
+            await _logsService.CreateLog(_USER_ID, LogTypes.ReadFolder);
 
             return new ResponseDto<List<ArchivoDto>>
             {

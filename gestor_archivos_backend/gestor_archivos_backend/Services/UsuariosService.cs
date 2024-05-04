@@ -18,12 +18,16 @@ namespace gestor_archivos_backend.Services
         private readonly GestorDbContext _context;
         private readonly IMapper _mapper;
 
+        private readonly ILogsService _logsService;
+
         // public UsuariosService(UserManager<UsuarioEntity> context, IMapper mapper)
-        public UsuariosService(GestorDbContext context, UserManager<UsuarioEntity> userManager, IMapper mapper)
+        public UsuariosService(GestorDbContext context, UserManager<UsuarioEntity> userManager, IMapper mapper, ILogsService logsService)
         {
             _context = context;
             _userManager = userManager;
             _mapper = mapper;
+
+            _logsService = logsService;
         }
 
         //obtener todos los usuarios
@@ -133,6 +137,8 @@ namespace gestor_archivos_backend.Services
 
                 var usuarioDto = _mapper.Map<UsuarioDto>(usuarioEntity);
 
+                await _logsService.CreateLog(usuarioEntity.Id, LogTypes.RegisterUser);
+
                 return new ResponseDto<UsuarioDto>
                 {
                     Status = true,
@@ -192,6 +198,8 @@ namespace gestor_archivos_backend.Services
 
             await _userManager.UpdateAsync(usuarioEntity);
 
+            await _logsService.CreateLog(usuarioEntity.Id, LogTypes.ModifyUser);
+
             return new ResponseDto<UsuarioDto>
             {
                 Status = true,
@@ -228,6 +236,8 @@ namespace gestor_archivos_backend.Services
                     Message = "Error al eliminar el usuario",
                 };
             }
+
+            await _logsService.CreateLog(usuarioEntity.Id, LogTypes.DeleteUser);
 
             return new ResponseDto<UsuarioDto>
             {
